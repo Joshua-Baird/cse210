@@ -17,6 +17,9 @@ class Program
                     Entry newEntry = new Entry();
                     newEntry.Write();
                     journal._entries.Add(newEntry);
+                    //to exceed the requirements I have added a fail save that will make sure that you don't loose portions of your journal accidentally. 
+                    //When you save it will check to see if there is a file named the same thing and warn you about replacing it.
+                    //If your attempt to load and you have unsaved entries in your journal it will warn you about loosing your data when you load. 
                     journal._saved = false;
                     break;
                 case 2:

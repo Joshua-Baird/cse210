@@ -11,7 +11,12 @@ public class Entry
         "What was the best part of my day?",
         "How did I see the hand of the Lord in my life today?",
         "What was the strongest emotion I felt today?",
-        "If I had one thing I could do over today, what would it be?"
+        "If I had one thing I could do over today, what would it be?",
+        "What was the most difficult part about today?",
+        "How do you feel about your discipleship today?",
+        "What are you most proud of today?",
+        "If I were you at this point last year, what is the thing you are most excited to share with me?",
+        "Compared to how you were last time you answered this prompt, what has improved? (What is one thing you have improved recently if this is the first time you get this prompt)"
         ];
 
     public void Write()
