@@ -10,7 +10,7 @@ class Program
         {
             Console.WriteLine($"Fraction: {randomFrac.GetFractionString()} Number: {randomFrac.GetDecimalValue()}");
             randomFrac.SetTop(random.Next(1, 11));
-            randomFrac.SetBottom(random.Next(1, 11));
+            randomFrac.SetBottom(random.Next());
         }
     }
 }
