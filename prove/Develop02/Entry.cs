@@ -23,8 +23,12 @@ public class Entry
     {
         // get a random number between 0 and the length of the _prompts list. We add 1 since it is exclusive
         int randomPromptIndex = Random.Shared.Next(_prompts.Count + 1);
-        Console.WriteLine("What is the date that your would like to write for");
+        Console.WriteLine("What is the date that your would like to write for (press enter for todays date)");
         _date = Console.ReadLine();
+        if (_date == "")
+        {
+            _date = DateTime.Today.ToString();
+        }
         _promptUsed = _prompts[randomPromptIndex];
         Console.WriteLine(_promptUsed);
         _content = Console.ReadLine();
