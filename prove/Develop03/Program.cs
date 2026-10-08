@@ -11,7 +11,7 @@ class Program
         List<Scripture> scriptures = [];
         string currentDirectory = Directory.GetCurrentDirectory();
         Console.WriteLine(currentDirectory);
-        string filePath = Path.Combine(currentDirectory, "../../../scriptures.csv");
+        string filePath = Path.Combine(currentDirectory, "scriptures.csv");
         Console.WriteLine(filePath);
         if (File.Exists(filePath))
         {
