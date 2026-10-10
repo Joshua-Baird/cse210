@@ -3,7 +3,7 @@ using System.Diagnostics.Contracts;
 public class PromptList
 {
     private List<string> _prompts;
-    private List<string> _promptsUsed;
+    private List<string> _usedPrompts = [];
     public PromptList(string type)
     {
         if (type == "reflectionQuestions")
@@ -25,14 +25,13 @@ public class PromptList
         //if there are no prompts, returns ""
         if (_prompts.Count() == 0)
         {
-            _prompts = _promptsUsed;
+            _prompts = _usedPrompts;
         }
-
         Random random = new Random();
         int ranI = random.Next(0, _prompts.Count() - 1);
         string prompt = _prompts[ranI];
         _prompts.RemoveAt(ranI);
-        _promptsUsed.Add(prompt);
+        _usedPrompts.Add(prompt);
         return prompt;
     }
 }
