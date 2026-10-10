@@ -12,13 +12,7 @@ public class ListingActivity : Activity
     {
         base.Start();
         Console.WriteLine("List as many responses as you can to the following prompt");
-
         string currentPrompt = _prompts.Give();
-        if (currentPrompt == "")
-        {
-            _prompts = new PromptList("listing");
-            currentPrompt = _prompts.Give();
-        }
         Console.WriteLine($"-----{currentPrompt}------");
         Console.Write("you may begin in:  ");
         for (int i = 5; i > 0; i--)

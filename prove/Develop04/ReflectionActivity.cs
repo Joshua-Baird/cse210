@@ -15,11 +15,6 @@ public class ReflectionActivity : Activity
         Console.WriteLine("Consider the following prompt");
 
         string currentPrompt = _reflectionPrompts.Give();
-        if (currentPrompt == "")
-        {
-            _reflectionQuestions = new PromptList("reflectionPrompts");
-            currentPrompt = _reflectionQuestions.Give();
-        }
         Console.WriteLine($"-----{currentPrompt}------");
         Console.Write("Press enter to continue");
         Console.ReadLine();
@@ -29,12 +24,6 @@ public class ReflectionActivity : Activity
         while (runTime <= _timeInSeconds)
         {
             currentPrompt = _reflectionQuestions.Give();
-            //if _reflectionQuestions is empty remake it.
-            if (currentPrompt == "")
-            {
-                _reflectionQuestions = new PromptList("reflectionQuestions");
-                currentPrompt = _reflectionQuestions.Give();
-            }
             Console.WriteLine(currentPrompt);
             Thread.Sleep(5000);
             runTime += 5;
