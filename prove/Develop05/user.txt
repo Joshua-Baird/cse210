@@ -1,0 +1,3 @@
+simple|test simple|This is the test simple goal|10|True||checklist|test checklist|This is the test checklist goal|10|1|3|10|False||eternal|test eternal|This is the test eternal goal|10|1
+0
+Joshua
