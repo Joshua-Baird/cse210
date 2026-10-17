@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Configuration.Assemblies;
 using System.IO.Enumeration;
 using System.Reflection;
 using System.Xml.Serialization;
@@ -9,9 +10,9 @@ public class User
     private double _totalPoints;
     private string _name;
 
-    public User(List<Goal> goals, double totalPoints, string name)
+    public User(double totalPoints, string name)
     {
-        _goals = goals;
+        _goals = [];
         _totalPoints = totalPoints;
         _name = name;
     }
@@ -97,16 +98,35 @@ public class User
 
     public void DisplayPoints()
     {
-        // Console.Clear();
         Console.WriteLine($"{_name} has {_totalPoints} points");
     }
 
     public void DisplayGoals()
     {
-        // Console.Clear();
         foreach (Goal goal in _goals)
         {
             goal.Display();
         }
+    }
+
+    public void DisplayGoalDetails()
+    {
+        int i = 0;
+        foreach (Goal goal in _goals)
+        {
+            i++;
+            Console.WriteLine($"{i}.");
+            goal.DisplayDetails();
+        }
+    }
+
+    public void CompleteGoal(int index)
+    {
+        _totalPoints += _goals[index].Complete();
+    }
+
+    public string GetName()
+    {
+        return _name;
     }
 }
