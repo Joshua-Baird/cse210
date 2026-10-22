@@ -4,6 +4,8 @@ class Program
 {
     static void Main(string[] args)
     {
-        Console.WriteLine("Hello FinalProject World!");
+        Colonist testColonist = new Colonist("Test Colonist");
+        Console.WriteLine(testColonist.GetName());
+        Console.WriteLine(testColonist.GetSpecialty());
     }
 }
