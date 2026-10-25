@@ -1,6 +1,6 @@
 public enum ConstructionState
 {
     planned,
-    UnderConstrucion,
+    UnderConstruction,
     Complete,
 }

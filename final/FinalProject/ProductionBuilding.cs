@@ -63,4 +63,26 @@ public abstract class ProductionBuilding : Building
             return false;
         }
     }
+
+    public override bool HasAssignedColonist(Colonist colonist)
+    {
+        if (!base.HasAssignedColonist(colonist))
+        {
+            foreach (Colonist worker in this.GetWorkers())
+            {
+                if (worker.GetName() == colonist.GetName())
+                {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    public override void RemoveAssignedColonist(Colonist colonist)
+    {
+        base.RemoveAssignedColonist(colonist);
+        _normalWorkers.Remove(colonist);
+        _specializedWorkers.Remove(colonist);
+    }
 }

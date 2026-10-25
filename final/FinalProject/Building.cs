@@ -1,10 +1,11 @@
 using System.Dynamic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks.Dataflow;
 
 public abstract class Building
 {
-    private string _type;
+    private string _kind;
     private int _constructionEnergyCost;
     private int _constructionDaysRemaining;
     private int _energyUpkeep;
@@ -13,9 +14,9 @@ public abstract class Building
     protected Specialty _requiredSpecialty;
     private List<Colonist> _builders;
 
-    public string GetTye()
+    public string GetKind()
     {
-        return _type;
+        return _kind;
     }
 
     public abstract Specialty GetRequiredSpecialty();
@@ -76,5 +77,42 @@ public abstract class Building
         {
             return false;
         }
+    }
+
+    public virtual bool HasAssignedColonist(Colonist colonist)
+    {
+        foreach (Colonist builder in _builders)
+        {
+            if (builder.GetName() == colonist.GetName())
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public virtual void RemoveAssignedColonist(Colonist colonist)
+    {
+        _builders.Remove(colonist);
+    }
+
+    public int TryBeginConstruction(int energy)
+    {
+        //returns the cost of construction or 0 if there is not enough energy to begin construction
+
+        if (energy >= _constructionEnergyCost)
+        {
+            _state = ConstructionState.UnderConstruction;
+            return _constructionEnergyCost;
+        }
+        else
+        {
+            return 0;
+        }
+    }
+
+    public int GetEnergyUpkeep()
+    {
+        return _energyUpkeep;
     }
 }
