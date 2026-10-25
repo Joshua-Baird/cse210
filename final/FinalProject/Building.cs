@@ -5,7 +5,7 @@ using System.Threading.Tasks.Dataflow;
 
 public abstract class Building
 {
-    private string _kind;
+    private string _name;
     private int _constructionEnergyCost;
     private int _constructionDaysRemaining;
     private int _energyUpkeep;
@@ -14,9 +14,28 @@ public abstract class Building
     protected Specialty _requiredSpecialty;
     private List<Colonist> _builders;
 
-    public string GetKind()
+    public Building(
+        string name,
+        int constructionEnergyCost,
+        int constructionDaysRemaining,
+        int energyUpkeep,
+        int requiredBuilderCount,
+        Specialty requiredSpecialty
+    )
     {
-        return _kind;
+        _name = name;
+        _constructionEnergyCost = constructionEnergyCost;
+        _constructionDaysRemaining = constructionDaysRemaining;
+        _energyUpkeep = energyUpkeep;
+        _requiredBuilderCount = requiredBuilderCount;
+        _requiredSpecialty = requiredSpecialty;
+        _state = ConstructionState.planned;
+        _builders = new List<Colonist>();
+    }
+
+    public string GetName()
+    {
+        return _name;
     }
 
     public abstract Specialty GetRequiredSpecialty();

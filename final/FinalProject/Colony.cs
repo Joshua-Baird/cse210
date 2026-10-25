@@ -20,11 +20,19 @@ public class Colony
         _energy = 12;
         _water = 18;
         _morale = 70;
-        _housingCopacity = 10;
+        _housingCopacity = 8;
         _recovering = false;
         _poweroutage = false;
-        _colonists = new List<Colonist>();
-        _buildings = new List<Building>();
+        _colonists =
+        [
+            new Colonist("Joshua", Specialty.Scientist),
+            new Colonist("Sarah", Specialty.Engineer),
+            new Colonist("Shuara", Specialty.Farmer),
+            new Colonist("test1"),
+            new Colonist("test2"),
+            new Colonist("test3"),
+        ];
+        _buildings = [new Farm(), new WaterRecycler(), new PowerPlant()];
     }
 
     public IReadOnlyList<Colonist> GetColonists()
@@ -133,12 +141,12 @@ public class Colony
                                 break;
                         }
                     }
-                    _energy -= building.GetEnergyUpkeep();
-                    if (_energy < 0)
-                    {
-                        _poweroutage = true;
-                    }
                 }
+            }
+            _energy -= building.GetEnergyUpkeep();
+            if (_energy < 0)
+            {
+                _poweroutage = true;
             }
         }
         //calculate and handle costs

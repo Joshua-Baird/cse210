@@ -15,6 +15,13 @@ public class Colonist
         _specialty = Specialty.None;
     }
 
+    public Colonist(string name, Specialty specialty)
+    {
+        _name = name;
+        _daysRemaingSick = 0;
+        _specialty = specialty;
+    }
+
     public Specialty GetSpecialty()
     {
         return _specialty;

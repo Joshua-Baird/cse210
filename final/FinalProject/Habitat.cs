@@ -1,18 +1,11 @@
 public class Habitat : Building
 {
-    private int _energyConsumption;
     private int _capacity;
 
-    public Habitat(int energyConsumption, int capacity)
-        : base()
+    public Habitat()
+        : base("Habitat", 8, 2, 1, 1, Specialty.Engineer)
     {
-        _energyConsumption = energyConsumption;
-        _capacity = capacity;
-    }
-
-    public int GetEnergyConsumption()
-    {
-        return _energyConsumption;
+        _capacity = 4;
     }
 
     public int GetCapacity()

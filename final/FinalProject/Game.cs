@@ -15,7 +15,8 @@ public class Game
         while (_colony.GetDaysSurvived() < _targetDays)
         {
             // Advance the game state by one day
-            _colony.AdvanceDay();
+            _gameOver = !_colony.AdvanceDay();
+
             // Display the current state of the colony
             _colony.logColonyStatus();
             // Check for game over conditions

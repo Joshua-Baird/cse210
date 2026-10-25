@@ -10,6 +10,33 @@ public abstract class ProductionBuilding : Building
     private List<Colonist> _specializedWorkers;
     public abstract ResourceType GetResourceType();
 
+    public ProductionBuilding(
+        string name,
+        int constructionEnergyCost,
+        int constructionDaysRemaining,
+        int energyUpkeep,
+        int requiredBuilderCount,
+        Specialty requiredSpecialty,
+        int workerCapacity,
+        int baseOutputPerWorker,
+        int specialistBonus
+    )
+        : base(
+            name,
+            constructionEnergyCost,
+            constructionDaysRemaining,
+            energyUpkeep,
+            requiredBuilderCount,
+            requiredSpecialty
+        )
+    {
+        _workerCapacity = workerCapacity;
+        _baseOutputPerWorker = baseOutputPerWorker;
+        _specialistBonus = specialistBonus;
+        _normalWorkers = new List<Colonist>();
+        _specializedWorkers = new List<Colonist>();
+    }
+
     public IReadOnlyList<Colonist> GetWorkers()
     {
         IReadOnlyList<Colonist> allWorkers =
