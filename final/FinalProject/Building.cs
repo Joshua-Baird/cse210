@@ -5,6 +5,7 @@ using System.Threading.Tasks.Dataflow;
 
 public abstract class Building
 {
+    private int _id;
     private string _name;
     private int _constructionEnergyCost;
     private int _constructionDaysRemaining;
@@ -15,6 +16,7 @@ public abstract class Building
     private List<Colonist> _builders;
 
     public Building(
+        int id,
         string name,
         int constructionEnergyCost,
         int constructionDaysRemaining,
@@ -23,13 +25,21 @@ public abstract class Building
         Specialty requiredSpecialty
     )
     {
+        _id = id;
         _name = name;
         _constructionEnergyCost = constructionEnergyCost;
         _constructionDaysRemaining = constructionDaysRemaining;
         _energyUpkeep = energyUpkeep;
         _requiredBuilderCount = requiredBuilderCount;
         _requiredSpecialty = requiredSpecialty;
-        _state = ConstructionState.planned;
+        if (_constructionDaysRemaining <= 0)
+        {
+            _state = ConstructionState.Complete;
+        }
+        else
+        {
+            _state = ConstructionState.planned;
+        }
         _builders = new List<Colonist>();
     }
 
@@ -133,5 +143,20 @@ public abstract class Building
     public int GetEnergyUpkeep()
     {
         return _energyUpkeep;
+    }
+
+    public int GetConstructionDaysRemaining()
+    {
+        return _constructionDaysRemaining;
+    }
+
+    public int GetRequiredBuildersCount()
+    {
+        return _requiredBuilderCount;
+    }
+
+    public int GetId()
+    {
+        return _id;
     }
 }

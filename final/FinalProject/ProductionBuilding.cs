@@ -11,6 +11,7 @@ public abstract class ProductionBuilding : Building
     public abstract ResourceType GetResourceType();
 
     public ProductionBuilding(
+        int id,
         string name,
         int constructionEnergyCost,
         int constructionDaysRemaining,
@@ -22,6 +23,7 @@ public abstract class ProductionBuilding : Building
         int specialistBonus
     )
         : base(
+            id,
             name,
             constructionEnergyCost,
             constructionDaysRemaining,
@@ -35,6 +37,11 @@ public abstract class ProductionBuilding : Building
         _specialistBonus = specialistBonus;
         _normalWorkers = new List<Colonist>();
         _specializedWorkers = new List<Colonist>();
+    }
+
+    public int GetWorkerCapacity()
+    {
+        return _workerCapacity;
     }
 
     public IReadOnlyList<Colonist> GetWorkers()
