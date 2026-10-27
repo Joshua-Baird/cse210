@@ -82,20 +82,26 @@ public abstract class ProductionBuilding : Building
     {
         int total = 0;
         total += _baseOutputPerWorker * _normalWorkers.Count();
-        total += _specialistBonus * _specializedWorkers.Count();
+        total +=
+            (_baseOutputPerWorker + _specialistBonus)
+            * _specializedWorkers.Count();
         return total;
     }
 
-    public bool IsAvailable()
+    public override bool IsAvailable()
     {
-        if (_workerCapacity <= this.GetWorkers().Count())
+        if (base.GetState() != ConstructionState.Complete)
         {
-            return true;
+            if (_workerCapacity <= this.GetWorkers().Count())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
-        else
-        {
-            return false;
-        }
+        return base.IsAvailable();
     }
 
     public override bool HasAssignedColonist(Colonist colonist)

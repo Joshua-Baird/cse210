@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Dynamic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -158,5 +159,14 @@ public abstract class Building
     public int GetId()
     {
         return _id;
+    }
+
+    public virtual bool IsAvailable()
+    {
+        if (_builders.Count() < _requiredBuilderCount)
+        {
+            return true;
+        }
+        return false;
     }
 }

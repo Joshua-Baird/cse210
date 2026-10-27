@@ -2,6 +2,7 @@ using System.Reflection.Metadata.Ecma335;
 
 public class Colony
 {
+    private int _nextBuildingId;
     private int _daysSurvived;
     private int _food;
     private int _energy;
@@ -35,103 +36,36 @@ public class Colony
         _buildings =
         [
             new Farm(1, 0),
-            new WaterRecycler(1, 0),
-            new PowerPlant(1, 0),
-            new Habitat(1, 0),
-            new Habitat(2, 0),
+            new WaterRecycler(2, 0),
+            new PowerPlant(3, 0),
+            new Habitat(4, 0),
+            new Habitat(5, 0),
         ];
+        _nextBuildingId = 6;
     }
 
-    private void MakeHabitat()
+    public void MakeHabitat()
     {
-        int index = 0;
-        while (true)
-        {
-            bool idExists = false;
-            index++;
-            foreach (Building building in _buildings)
-            {
-                if (building.GetId() == index)
-                {
-                    idExists = true;
-                    break;
-                }
-            }
-            if (!idExists)
-            {
-                _buildings.Add(new Habitat(index));
-                break;
-            }
-        }
+        _buildings.Add(new Habitat(_nextBuildingId));
+        _nextBuildingId++;
     }
 
-    private void MakePowerPlant()
+    public void MakePowerPlant()
     {
-        int index = 0;
-        while (true)
-        {
-            bool idExists = false;
-            index++;
-            foreach (Building building in _buildings)
-            {
-                if (building.GetId() == index)
-                {
-                    idExists = true;
-                    break;
-                }
-            }
-            if (!idExists)
-            {
-                _buildings.Add(new PowerPlant(index));
-                break;
-            }
-        }
+        _buildings.Add(new PowerPlant(_nextBuildingId));
+        _nextBuildingId++;
     }
 
-    private void MakeWaterRecycler()
+    public void MakeWaterRecycler()
     {
-        int index = 0;
-        while (true)
-        {
-            bool idExists = false;
-            index++;
-            foreach (Building building in _buildings)
-            {
-                if (building.GetId() == index)
-                {
-                    idExists = true;
-                    break;
-                }
-            }
-            if (!idExists)
-            {
-                _buildings.Add(new WaterRecycler(index));
-                break;
-            }
-        }
+        _buildings.Add(new WaterRecycler(_nextBuildingId));
+        _nextBuildingId++;
     }
 
-    private void MakeIndoorFarm()
+    public void MakeIndoorFarm()
     {
-        int index = 0;
-        while (true)
-        {
-            bool idExists = false;
-            index++;
-            foreach (Building building in _buildings)
-            {
-                if (building.GetId() == index)
-                {
-                    idExists = true;
-                    break;
-                }
-            }
-            if (!idExists)
-            {
-                _buildings.Add(new Farm(index));
-                break;
-            }
-        }
+        _buildings.Add(new Farm(_nextBuildingId));
+        _nextBuildingId++;
     }
 
     public IReadOnlyList<Colonist> GetColonists()
@@ -281,11 +215,11 @@ public class Colony
         }
     }
 
-    public bool TryAssignBuilder(Colonist builder, ProductionBuilding building)
+    public bool TryAssignBuilder(Colonist builder, Building building)
     {
         if (building.IsAvailable())
         {
-            building.AddWorker(builder);
+            building.AddBuilder(builder);
             return true;
         }
         else
@@ -489,7 +423,7 @@ Energy         {_energy}          +{this.GetProjectedEnergyProduction()}        
             if (building.GetState() == ConstructionState.UnderConstruction)
             {
                 string line =
-                    $"{building.GetName()}          {building.GetConstructionDaysRemaining()} days remaining";
+                    $"{building.GetId()} {building.GetName()}          {building.GetConstructionDaysRemaining()} days remaining";
                 fullString += line + "\n";
             }
         }
@@ -513,10 +447,9 @@ Energy         {_energy}          +{this.GetProjectedEnergyProduction()}        
             {
                 if (building.BuilderNeeded())
                 {
-                    index++;
                     assignmentsAvailable = true;
                     fullString +=
-                        $"{building.GetName()}  Builders {building.GetBuilders().Count()}/{building.GetRequiredBuildersCount()} Days Remaining: {building.GetConstructionDaysRemaining} Requires: {building.GetRequiredSpecialty()}";
+                        $"{building.GetId()} {building.GetName()}  Builders {building.GetBuilders().Count()}/{building.GetRequiredBuildersCount()} Days Remaining: {building.GetConstructionDaysRemaining} Requires: {building.GetRequiredSpecialty()}";
                 }
             }
         }
@@ -525,5 +458,20 @@ Energy         {_energy}          +{this.GetProjectedEnergyProduction()}        
             fullString += "none available";
         }
         return fullString;
+    }
+
+    public Building TryAssign(string userInput)
+    {
+        if (int.TryParse(userInput, out int choice))
+        {
+            foreach (Building building in _buildings)
+            {
+                if (building.GetId() == choice)
+                {
+                    return building;
+                }
+            }
+        }
+        return null;
     }
 }

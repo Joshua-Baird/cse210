@@ -4,6 +4,9 @@ public class Habitat : Building
 {
     private int _capacity;
 
+    public Habitat()
+        : base(-1, "Habitat", 8, 2, 1, 1, Specialty.Engineer) { }
+
     public Habitat(int id)
         : base(id, "Habitat", 8, 2, 1, 1, Specialty.Engineer)
     {
@@ -31,6 +34,6 @@ public class Habitat : Building
 
     public override Specialty GetRequiredSpecialty()
     {
-        throw new NotImplementedException();
+        return Specialty.Engineer;
     }
 }

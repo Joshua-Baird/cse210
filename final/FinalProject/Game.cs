@@ -1,20 +1,31 @@
+using System.Runtime.CompilerServices;
+using System.Xml.Serialization;
+
 public class Game
 {
     private Colony _colony;
     private int _targetDays;
-    private bool _gameOver;
     private int _daysUntilArrival;
+    private List<Building> _buildingTypes;
 
     public Game()
     {
         _colony = new Colony();
         _targetDays = 30;
         _daysUntilArrival = 5;
+        _buildingTypes =
+        [
+            new Farm(),
+            new WaterRecycler(),
+            new PowerPlant(),
+            new Habitat(),
+        ];
     }
 
     public void Run()
     {
         Console.Clear();
+        // Game Start Message
         Console.WriteLine(
             @"OUTPOST
 
@@ -47,38 +58,22 @@ Press Enter to begin."
         //continue until the target number of days is reached
         while (_colony.GetDaysSurvived() < _targetDays)
         {
-            bool valid = false;
-            //allow to retry as long as the input is not valid
-            while (!valid)
+            int choice = this.HandleInput(0, 3);
+            switch (choice)
             {
-                string userChoice = Console.ReadLine();
-                if (int.TryParse(userChoice, out int choice))
-                {
-                    switch (choice)
-                    {
-                        case 1:
-                            valid = true;
-                            this.ManageAssignments();
-                            break;
-                        case 2:
-                            valid = true;
-                            this.ManageConstruction();
-                            break;
-                        case 3:
-                            valid = true;
-                            this.EndDay();
-                            break;
-                        case 0:
-                            valid = true;
-                            return;
-                    }
-                }
-                else
-                {
-                    valid = false;
-                    Console.WriteLine("please provide a valid input");
-                }
+                case 1:
+                    this.ManageAssignments();
+                    break;
+                case 2:
+                    this.ManageConstruction();
+                    break;
+                case 3:
+                    this.EndDay();
+                    break;
+                case 0:
+                    return;
             }
+
             this.BeginDay();
         }
     }
@@ -98,24 +93,15 @@ Press Enter to begin."
 
 Select a colonist number, or 0 to return: "
         );
-        bool valid = false;
-        while (!valid)
+        int choice = this.HandleInput(0, _colony.GetColonistCount());
         {
-            string userChoice = Console.ReadLine();
-            //make sure the user input is a number matching one of the colonists
-            if (
-                int.TryParse(userChoice, out int choice)
-                && choice <= _colony.GetColonistCount()
-                && choice >= 0
-            )
+            if (choice == 0)
             {
-                if (choice == 0)
-                {
-                    return;
-                }
-                Colonist colonist = _colony.GetColonists()[choice - 1];
-                Console.WriteLine(
-                    $@"==============================================================
+                return;
+            }
+            Colonist colonist = _colony.GetColonists()[choice - 1];
+            Console.WriteLine(
+                $@"==============================================================
                          {colonist.GetName()}
 ==============================================================
 
@@ -127,24 +113,96 @@ CHOOSE AN ASSIGNMENT
 
 {_colony.GetBuildingsDisplay()}
 
-Construction assignments: none available.
+{_colony.GetConstructionAssignmentsDisplay()}
 
 [0] Back
 
 Choose: "
+            );
+            Building building;
+            while (true)
+            {
+                building = _colony.TryAssign(Console.ReadLine());
+                if (building != null)
+                {
+                    break;
+                }
+                Console.WriteLine("Please give a valid input");
+            }
+            bool workerAssigned;
+            if (building is ProductionBuilding productionBuilding)
+            {
+                workerAssigned = _colony.TryAssignWorker(
+                    colonist,
+                    productionBuilding
                 );
             }
             else
             {
-                valid = false;
-                Console.WriteLine("please provide a valid input");
+                workerAssigned = _colony.TryAssignBuilder(colonist, building);
+            }
+            if (workerAssigned)
+            {
+                Console.WriteLine(
+                    $"{colonist.GetName()} successfully assigned to {building.GetName()}"
+                );
             }
         }
     }
 
-    private void ManageConstruction() { }
+    private void ManageConstruction()
+    {
+        Console.WriteLine(
+            $@"==============================================================
+                       CONSTRUCTION
+==============================================================
+
+Available energy: {_colony.GetEnergy()}
+Housing: {_colony.GetColonistCount()}/{_colony.GetHousingCopacity()} occupied
+
+{this.GetConstructionDisplay()}
+
+[5] View construction projects
+[0] Back
+
+Choose:"
+        );
+        int choice = this.HandleInput(0, 4);
+        switch (choice)
+        {
+            case 1:
+                _colony.MakeIndoorFarm();
+                break;
+            case 2:
+                _colony.MakeWaterRecycler();
+                break;
+            case 3:
+                _colony.MakePowerPlant();
+                break;
+            case 4:
+                _colony.MakeHabitat();
+                break;
+            case 0:
+                return;
+        }
+    }
 
     private void EndDay() { }
+
+    private string GetConstructionDisplay()
+    {
+        int i = 0;
+        string fullString =
+            "# Building     Cost     Build time     Required builder\n";
+        foreach (Building building in _buildingTypes)
+        {
+            i++;
+            string line =
+                $"{i} {building.GetName()}    {building.GetEnergyUpkeep()}     {building.GetConstructionDaysRemaining()}     {building.GetRequiredSpecialty()}";
+            fullString += line + "\n";
+        }
+        return fullString;
+    }
 
     private void BeginDay()
     {
@@ -178,5 +236,27 @@ Next Colonist Arrives in {_daysUntilArrival} day(s)
 
 Choose:"
         );
+    }
+
+    private int HandleInput(int lowerRange, int higherRange)
+    {
+        bool valid = false;
+        while (!valid)
+        {
+            string userInput = Console.ReadLine();
+            if (
+                int.TryParse(userInput, out int choice)
+                && choice >= lowerRange
+                && choice <= higherRange
+            )
+            {
+                return choice;
+            }
+            else
+            {
+                Console.WriteLine("please type a valid number");
+            }
+        }
+        return -9;
     }
 }
