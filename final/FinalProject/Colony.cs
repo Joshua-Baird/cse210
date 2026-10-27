@@ -31,11 +31,15 @@ public class Colony
             new Colonist("Nora"),
             new Colonist("Leah"),
         ];
+        List<Colonist> farmWorkers = [_colonists[2], _colonists[5]];
+        List<Colonist> waterWorkers = [_colonists[0], _colonists[4]];
+        List<Colonist> PowerWorkers = [_colonists[1], _colonists[3]];
+
         _buildings =
         [
-            new Farm(1, 0),
-            new WaterRecycler(2, 0),
-            new PowerPlant(3, 0),
+            new Farm(1, 0, farmWorkers),
+            new WaterRecycler(2, 0, waterWorkers),
+            new PowerPlant(3, 0, PowerWorkers),
             new Habitat(4, 0),
             new Habitat(5, 0),
         ];

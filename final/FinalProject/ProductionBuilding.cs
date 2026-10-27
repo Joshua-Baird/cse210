@@ -39,6 +39,47 @@ public abstract class ProductionBuilding : Building
         _specializedWorkers = new List<Colonist>();
     }
 
+    public ProductionBuilding(
+        int id,
+        string name,
+        int constructionEnergyCost,
+        int constructionDaysRemaining,
+        int energyUpkeep,
+        int requiredBuilderCount,
+        Specialty requiredSpecialty,
+        int workerCapacity,
+        int baseOutputPerWorker,
+        int specialistBonus,
+        List<Colonist> workers
+    )
+        : base(
+            id,
+            name,
+            constructionEnergyCost,
+            constructionDaysRemaining,
+            energyUpkeep,
+            requiredBuilderCount,
+            requiredSpecialty
+        )
+    {
+        _workerCapacity = workerCapacity;
+        _baseOutputPerWorker = baseOutputPerWorker;
+        _specialistBonus = specialistBonus;
+        _normalWorkers = new List<Colonist>();
+        _specializedWorkers = new List<Colonist>();
+        foreach (Colonist worker in workers)
+        {
+            if (worker.GetSpecialty() == requiredSpecialty)
+            {
+                _specializedWorkers.Add(worker);
+            }
+            else
+            {
+                _normalWorkers.Add(worker);
+            }
+        }
+    }
+
     public int GetWorkerCapacity()
     {
         return _workerCapacity;
@@ -106,14 +147,15 @@ public abstract class ProductionBuilding : Building
 
     public override bool HasAssignedColonist(Colonist colonist)
     {
-        if (!base.HasAssignedColonist(colonist))
+        if (base.HasAssignedColonist(colonist))
         {
-            foreach (Colonist worker in this.GetWorkers())
+            return true;
+        }
+        foreach (Colonist worker in this.GetWorkers())
+        {
+            if (worker.GetName() == colonist.GetName())
             {
-                if (worker.GetName() == colonist.GetName())
-                {
-                    return true;
-                }
+                return true;
             }
         }
         return false;

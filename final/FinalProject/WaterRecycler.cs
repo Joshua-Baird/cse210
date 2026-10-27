@@ -8,7 +8,11 @@ public class WaterRecycler : ProductionBuilding
         : base(id, "Water Recycler", 6, 2, 1, 1, Specialty.Scientist, 2, 3, 1)
     { }
 
-    public WaterRecycler(int id, int constructionDaysRemaining)
+    public WaterRecycler(
+        int id,
+        int constructionDaysRemaining,
+        List<Colonist> workers
+    )
         : base(
             id,
             "Water Recycler",
@@ -19,7 +23,8 @@ public class WaterRecycler : ProductionBuilding
             Specialty.Scientist,
             2,
             3,
-            1
+            1,
+            workers
         ) { }
 
     public override Specialty GetRequiredSpecialty()
