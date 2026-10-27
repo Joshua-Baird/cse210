@@ -132,13 +132,14 @@ public abstract class Building
 
         if (energy >= _constructionEnergyCost)
         {
-            _state = ConstructionState.UnderConstruction;
-            return _constructionEnergyCost;
-        }
-        else
-        {
+            if (this.CrewReady())
+            {
+                _state = ConstructionState.UnderConstruction;
+                return _constructionEnergyCost;
+            }
             return 0;
         }
+        return 0;
     }
 
     public int GetEnergyUpkeep()
@@ -168,5 +169,10 @@ public abstract class Building
             return true;
         }
         return false;
+    }
+
+    public int GetConstructionCost()
+    {
+        return _constructionEnergyCost;
     }
 }

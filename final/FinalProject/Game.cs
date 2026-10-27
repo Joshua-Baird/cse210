@@ -158,7 +158,7 @@ Choose: "
 ==============================================================
 
 Available energy: {_colony.GetEnergy()}
-Housing: {_colony.GetColonistCount()}/{_colony.GetHousingCopacity()} occupied
+Housing: {_colony.GetColonistCount()}/{_colony.GetHousingCapacity()} occupied
 
 {this.GetConstructionDisplay()}
 
@@ -168,22 +168,93 @@ Housing: {_colony.GetColonistCount()}/{_colony.GetHousingCopacity()} occupied
 Choose:"
         );
         int choice = this.HandleInput(0, 4);
+        if (choice == 0)
+        {
+            return;
+        }
+        //Grab the building they wanted.
+        Building building = _buildingTypes[choice - 1];
+        Console.WriteLine(
+            $@"==============================================================
+                        Colonists
+=============================================================
+
+{_colony.GetColonistsDisplay()}
+        
+To Build: {building.GetName()} 
+Required Specialty: {building.GetRequiredSpecialty()}
+Choose a colonist you want to work on this project"
+        );
+        int colonistChoice = this.HandleInput(0, _colony.GetColonistCount());
+        Colonist colonist = _colony.GetColonists()[colonistChoice - 1];
+        if (building is Habitat habitat)
+        {
+            Console.WriteLine(
+                $@"==============================================================
+                        {habitat.GetName()}
+==============================================================
+
+Provides:             {habitat.GetCapacity()} additional beds
+Construction cost:    {habitat.GetConstructionCost()} energy, paid once
+Construction time:    {habitat.GetConstructionDaysRemaining()} working days
+Operating upkeep:     {habitat.GetEnergyUpkeep()} energy/day after completion
+
+EXPECTED EFFECT
+Housing after completion:     {_colony.GetHousingCapacity()} -> {_colony.GetHousingCapacity() + habitat.GetCapacity()} beds
+Energy after payment:        {_colony.GetEnergy()} -> {_colony.GetEnergy() - habitat.GetConstructionCost()}
+
+CREW
+{colonist.GetName} {colonist.GetSpecialty} {_colony.GetColonistAssignment(colonist)}
+
+[1] Start construction
+[0] Back without starting
+
+Choose:"
+            );
+        }
+        else if (building is ProductionBuilding productionBuilding)
+        {
+            Console.WriteLine(
+                $@"==============================================================
+                        {productionBuilding.GetName()}
+==============================================================
+
+Provides:             {productionBuilding.GetResourceType()}  
+Construction cost:    {productionBuilding.GetConstructionCost()} energy, paid once
+Construction time:    {productionBuilding.GetConstructionDaysRemaining()} working days
+Operating upkeep:     {productionBuilding.GetEnergyUpkeep()} energy/day after completion
+
+EXPECTED EFFECT
+Energy after payment:        {_colony.GetEnergy()} -> {_colony.GetEnergy() - productionBuilding.GetConstructionCost()}
+
+CREW
+{colonist.GetName()} {colonist.GetSpecialty()} {_colony.GetColonistAssignment(colonist)}
+
+[1] Start construction
+[0] Back without starting
+
+Choose:"
+            );
+        }
+        int secondChoice = this.HandleInput(0, 1);
+        if (secondChoice == 0)
+        {
+            return;
+        }
         switch (choice)
         {
             case 1:
-                _colony.MakeIndoorFarm();
+                _colony.TryAddIndoorFarm(colonist);
                 break;
             case 2:
-                _colony.MakeWaterRecycler();
+                _colony.TryAddWaterRecycler(colonist);
                 break;
             case 3:
-                _colony.MakePowerPlant();
+                _colony.TryAddPowerPlant(colonist);
                 break;
             case 4:
-                _colony.MakeHabitat();
+                _colony.TryAddHabitat(colonist);
                 break;
-            case 0:
-                return;
         }
     }
 
@@ -212,7 +283,7 @@ Choose:"
                     DAY {_colony.GetDaysSurvived()} OF {_targetDays} — PLANNING
 ==============================================================
 
-Colonists: {_colony.GetColonistCount()}        Housing: {_colony.GetColonistCount()}/{_colony.GetHousingCopacity()}        Morale: {_colony.GetMorale()}/100
+Colonists: {_colony.GetColonistCount()}        Housing: {_colony.GetColonistCount()}/{_colony.GetHousingCapacity()}
 Goal: Finish day 25 with at least 10 colonists.
 
 {_colony.GetResourceForcastDisplay()}

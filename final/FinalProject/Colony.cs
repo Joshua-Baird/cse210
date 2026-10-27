@@ -8,7 +8,6 @@ public class Colony
     private int _energy;
     private int _water;
     private int _morale;
-    private int _housingCopacity;
     private bool _recovering;
     private bool _poweroutage;
     private List<Colonist> _colonists;
@@ -21,7 +20,6 @@ public class Colony
         _energy = 12;
         _water = 18;
         _morale = 70;
-        _housingCopacity = 8;
         _recovering = false;
         _poweroutage = false;
         _colonists =
@@ -44,28 +42,64 @@ public class Colony
         _nextBuildingId = 6;
     }
 
-    public void MakeHabitat()
+    public bool TryAddHabitat(Colonist colonist)
     {
-        _buildings.Add(new Habitat(_nextBuildingId));
-        _nextBuildingId++;
+        Habitat habitat = new Habitat(_nextBuildingId);
+        habitat.AddBuilder(colonist);
+        int cost = habitat.TryBeginConstruction(_energy);
+        if (cost != 0)
+        {
+            _energy -= cost;
+            _buildings.Add(habitat);
+            _nextBuildingId++;
+            return true;
+        }
+        return false;
     }
 
-    public void MakePowerPlant()
+    public bool TryAddPowerPlant(Colonist colonist)
     {
-        _buildings.Add(new PowerPlant(_nextBuildingId));
-        _nextBuildingId++;
+        PowerPlant habitat = new PowerPlant(_nextBuildingId);
+        habitat.AddBuilder(colonist);
+        int cost = habitat.TryBeginConstruction(_energy);
+        if (cost != 0)
+        {
+            _energy -= cost;
+            _buildings.Add(habitat);
+            _nextBuildingId++;
+            return true;
+        }
+        return false;
     }
 
-    public void MakeWaterRecycler()
+    public bool TryAddWaterRecycler(Colonist colonist)
     {
-        _buildings.Add(new WaterRecycler(_nextBuildingId));
-        _nextBuildingId++;
+        WaterRecycler habitat = new WaterRecycler(_nextBuildingId);
+        habitat.AddBuilder(colonist);
+        int cost = habitat.TryBeginConstruction(_energy);
+        if (cost != 0)
+        {
+            _energy -= cost;
+            _buildings.Add(habitat);
+            _nextBuildingId++;
+            return true;
+        }
+        return false;
     }
 
-    public void MakeIndoorFarm()
+    public bool TryAddIndoorFarm(Colonist colonist)
     {
-        _buildings.Add(new Farm(_nextBuildingId));
-        _nextBuildingId++;
+        Farm habitat = new Farm(_nextBuildingId);
+        habitat.AddBuilder(colonist);
+        int cost = habitat.TryBeginConstruction(_energy);
+        if (cost != 0)
+        {
+            _energy -= cost;
+            _buildings.Add(habitat);
+            _nextBuildingId++;
+            return true;
+        }
+        return false;
     }
 
     public IReadOnlyList<Colonist> GetColonists()
@@ -175,9 +209,17 @@ public class Colony
         return energyProduction;
     }
 
-    public int GetHousingCopacity()
+    public int GetHousingCapacity()
     {
-        return _housingCopacity;
+        int housingCopacity = 0;
+        foreach (Building building in _buildings)
+        {
+            if (building is Habitat habitat)
+            {
+                housingCopacity += habitat.GetCapacity();
+            }
+        }
+        return housingCopacity;
     }
 
     public IReadOnlyList<Building> GetBuildings()
@@ -369,7 +411,6 @@ public class Colony
         Console.WriteLine($"Water: {_water}");
         Console.WriteLine($"Energy: {_energy}");
         Console.WriteLine($"Morale: {_morale}");
-        Console.WriteLine($"Housing Capacity: {_housingCopacity}");
         Console.WriteLine($"Recovering: {_recovering}");
         Console.WriteLine($"Power Outage: {_poweroutage}");
     }
