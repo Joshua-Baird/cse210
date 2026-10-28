@@ -12,6 +12,7 @@ public class Colony
     private bool _poweroutage;
     private List<Colonist> _colonists;
     private List<Building> _buildings;
+    private int _numColonistsFed;
 
     public Colony()
     {
@@ -44,6 +45,7 @@ public class Colony
             new Habitat(5, 0),
         ];
         _nextBuildingId = 6;
+        _numColonistsFed = 0;
     }
 
     public bool TryAddHabitat(Colonist colonist)
@@ -154,7 +156,8 @@ public class Colony
 
     public int GetProjectedEnergyConsumption()
     {
-        int totalEnergyConsumption = 0;
+        //starts at 3 for base heating requirments
+        int totalEnergyConsumption = 3;
         foreach (Building building in _buildings)
         {
             if (building.GetState() == ConstructionState.Complete)
@@ -368,10 +371,15 @@ public class Colony
             }
         }
         //calculate and handle costs
+        _numColonistsFed = 0;
         foreach (Colonist colonist in _colonists)
         {
-            _food--;
-            _water--;
+            if (_food != 0 && _water != 0)
+            {
+                _food--;
+                _water--;
+                _numColonistsFed += 1;
+            }
         }
         if (_food < 0)
         {
@@ -427,7 +435,7 @@ public class Colony
             if (building is ProductionBuilding productionBuilding)
             {
                 string line =
-                    $"{building.GetId()} {building.GetName()}          {this.GetAssignedWorkers(building.GetId())}/{productionBuilding.GetWorkerCapacity()} workers";
+                    $"{building.GetId(), -2} {building.GetName(), -10} {this.GetAssignedWorkers(building.GetId()), -1}/{productionBuilding.GetWorkerCapacity(), -1} workers";
                 fullString += line + "\n";
             }
         }
@@ -438,12 +446,12 @@ public class Colony
     {
         string fullString = "COLONISTS\n";
         int index = 0;
-        fullString += "# Name       Specialty    Assignment           Health\n";
+        fullString += "#  Name       Specialty    Assignment\n";
         foreach (Colonist colonist in _colonists)
         {
             index++;
             string line =
-                $"{index} {colonist.GetName()}     {colonist.GetSpecialty()}     {this.GetColonistAssignment(colonist)}       {(colonist.IsSick() ? "Sick" : "Healthy")}";
+                $"{index, -2} {colonist.GetName(), -10} {colonist.GetSpecialty(), -12} {this.GetColonistAssignment(colonist), -20}";
             fullString += line + "\n";
         }
         return fullString;
@@ -454,6 +462,17 @@ public class Colony
         return $@"
 RESOURCE FORECAST
 Resource    Current    Production    Consumption    Expected
+Food           {_food}          +{this.GetProjectedFoodProduction()}             -{this.GetProjectedFoodConsumption()}            {this.GetFood() + this.GetProjectedFoodProduction() - this.GetProjectedFoodConsumption()}
+Water          {_water}          +{this.GetProjectedWaterProduction()}             -{this.GetProjectedWaterConsumption()}            {this.GetWater() + this.GetProjectedWaterProduction() - this.GetProjectedWaterConsumption()}
+Energy         {_energy}          +{this.GetProjectedEnergyProduction()}             -{this.GetProjectedEnergyConsumption()}            {this.GetEnergy() + this.GetProjectedEnergyProduction() - this.GetProjectedEnergyConsumption()}
+        ";
+    }
+
+    public string GetResourceReportDisplay()
+    {
+        return $@"
+RESOURCE REPORT
+Resource    started    Production    Consumption    Remaining
 Food           {_food}          +{this.GetProjectedFoodProduction()}             -{this.GetProjectedFoodConsumption()}            {this.GetFood() + this.GetProjectedFoodProduction() - this.GetProjectedFoodConsumption()}
 Water          {_water}          +{this.GetProjectedWaterProduction()}             -{this.GetProjectedWaterConsumption()}            {this.GetWater() + this.GetProjectedWaterProduction() - this.GetProjectedWaterConsumption()}
 Energy         {_energy}          +{this.GetProjectedEnergyProduction()}             -{this.GetProjectedEnergyConsumption()}            {this.GetEnergy() + this.GetProjectedEnergyProduction() - this.GetProjectedEnergyConsumption()}
@@ -518,5 +537,23 @@ Energy         {_energy}          +{this.GetProjectedEnergyProduction()}        
             }
         }
         return null;
+    }
+
+    public string GetStatusReport()
+    {
+        string fullString =
+            $@"
+        {_numColonistsFed}/{_colonists.Count()} Received food and water";
+        if (!_poweroutage)
+        {
+            fullString +=
+                "\n Heating and production systems remained operational.";
+        }
+        else
+        {
+            fullString +=
+                "\n There was not enough energy to power all the buildings, All systems except Geothermal Plant are now down";
+        }
+        return fullString;
     }
 }

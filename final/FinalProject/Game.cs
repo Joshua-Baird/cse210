@@ -7,6 +7,7 @@ public class Game
     private int _targetDays;
     private int _daysUntilArrival;
     private List<Building> _buildingTypes;
+    private int _survivorsTurnedAway;
 
     public Game()
     {
@@ -20,6 +21,7 @@ public class Game
             new PowerPlant(),
             new Habitat(),
         ];
+        _survivorsTurnedAway = 0;
     }
 
     public void Run()
@@ -106,7 +108,6 @@ Select a colonist number, or 0 to return: "
 ==============================================================
 
 Specialty: {colonist.GetSpecialty()}
-Health: {(colonist.IsSick() ? "Sick" : "Healthy")}
 Current assignment: {_colony.GetColonistAssignment(colonist)}
 
 CHOOSE AN ASSIGNMENT
@@ -145,6 +146,12 @@ Choose: "
             {
                 Console.WriteLine(
                     $"{colonist.GetName()} successfully assigned to {building.GetName()}"
+                );
+            }
+            else
+            {
+                Console.WriteLine(
+                    $"{colonist.GetName()} could not be assigned to {building.GetName()}"
                 );
             }
         }
@@ -258,7 +265,49 @@ Choose:"
         }
     }
 
-    private void EndDay() { }
+    private void EndDay()
+    {
+        _daysUntilArrival -= 1;
+        if (_daysUntilArrival == 0)
+        {
+            Console.WriteLine("colonist arrives!");
+            _daysUntilArrival = 5;
+        }
+        if (_colony.AdvanceDay())
+        {
+            Console.WriteLine(
+                $@"================================================================
+                     DAY {_colony.GetDaysSurvived()} OF {_targetDays} COMPLETE
+================================================================
+
+{_colony.GetResourceReportDisplay()}
+
+{_colony.GetStatusReport()}
+
+{_colony.GetConstructionDisplay()}
+
+----------------------------------------------------------------
+COLONY
+----------------------------------------------------------------
+
+Population: {_colony.GetColonistCount()}
+Housing: {_colony.GetColonistCount()}/{_colony.GetHousingCapacity()} occupied
+Survivors turned away: {_survivorsTurnedAway}
+
+Next survivor arrives in {_daysUntilArrival} days
+
+Days remaining until the end of the month: {_targetDays}
+
+Press Enter to plan day {_colony.GetDaysSurvived() + 1}.
+================================================================ "
+            );
+            Console.ReadLine();
+        }
+        else
+        {
+            Console.WriteLine("Game Over");
+        }
+    }
 
     private string GetConstructionDisplay()
     {
@@ -280,7 +329,7 @@ Choose:"
         Console.WriteLine(
             $@"==============================================================
                          OUTPOST
-                    DAY {_colony.GetDaysSurvived()} OF {_targetDays} — PLANNING
+                    DAY {_colony.GetDaysSurvived() + 1} OF {_targetDays} — PLANNING
 ==============================================================
 
 Colonists: {_colony.GetColonistCount()}        Housing: {_colony.GetColonistCount()}/{_colony.GetHousingCapacity()}

@@ -131,9 +131,9 @@ public abstract class ProductionBuilding : Building
 
     public override bool IsAvailable()
     {
-        if (base.GetState() != ConstructionState.Complete)
+        if (base.GetState() == ConstructionState.Complete)
         {
-            if (_workerCapacity <= this.GetWorkers().Count())
+            if (_workerCapacity > this.GetWorkers().Count())
             {
                 return true;
             }
