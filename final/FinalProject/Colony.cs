@@ -9,10 +9,16 @@ public class Colony
     private int _water;
     private int _morale;
     private bool _recovering;
-    private bool _poweroutage;
+    private bool _powerOutage;
     private List<Colonist> _colonists;
     private List<Building> _buildings;
     private int _numColonistsFed;
+    private int _foodProducedToday;
+    private int _energyProducedToday;
+    private int _waterProducedToday;
+    private int _foodConsumedToday;
+    private int _energyConsumedToday;
+    private int _waterConsumedToday;
 
     public Colony()
     {
@@ -22,7 +28,7 @@ public class Colony
         _water = 18;
         _morale = 70;
         _recovering = false;
-        _poweroutage = false;
+        _powerOutage = false;
         _colonists =
         [
             new Colonist("Freyja", Specialty.Scientist),
@@ -34,13 +40,13 @@ public class Colony
         ];
         List<Colonist> farmWorkers = [_colonists[2], _colonists[5]];
         List<Colonist> waterWorkers = [_colonists[0], _colonists[4]];
-        List<Colonist> PowerWorkers = [_colonists[1], _colonists[3]];
+        List<Colonist> powerWorkers = [_colonists[1], _colonists[3]];
 
         _buildings =
         [
             new Farm(1, 0, farmWorkers),
             new WaterRecycler(2, 0, waterWorkers),
-            new PowerPlant(3, 0, PowerWorkers),
+            new PowerPlant(3, 0, powerWorkers),
             new Habitat(4, 0),
             new Habitat(5, 0),
         ];
@@ -51,11 +57,12 @@ public class Colony
     public bool TryAddHabitat(Colonist colonist)
     {
         Habitat habitat = new Habitat(_nextBuildingId);
-        habitat.AddBuilder(colonist);
+        this.TryAssignBuilder(colonist, habitat);
         int cost = habitat.TryBeginConstruction(_energy);
         if (cost != 0)
         {
             _energy -= cost;
+            _energyConsumedToday -= cost;
             _buildings.Add(habitat);
             _nextBuildingId++;
             return true;
@@ -65,13 +72,14 @@ public class Colony
 
     public bool TryAddPowerPlant(Colonist colonist)
     {
-        PowerPlant habitat = new PowerPlant(_nextBuildingId);
-        habitat.AddBuilder(colonist);
-        int cost = habitat.TryBeginConstruction(_energy);
+        PowerPlant powerPlant = new PowerPlant(_nextBuildingId);
+        this.TryAssignBuilder(colonist, powerPlant);
+        int cost = powerPlant.TryBeginConstruction(_energy);
         if (cost != 0)
         {
             _energy -= cost;
-            _buildings.Add(habitat);
+            _energyConsumedToday -= cost;
+            _buildings.Add(powerPlant);
             _nextBuildingId++;
             return true;
         }
@@ -80,13 +88,14 @@ public class Colony
 
     public bool TryAddWaterRecycler(Colonist colonist)
     {
-        WaterRecycler habitat = new WaterRecycler(_nextBuildingId);
-        habitat.AddBuilder(colonist);
-        int cost = habitat.TryBeginConstruction(_energy);
+        WaterRecycler waterRecycler = new WaterRecycler(_nextBuildingId);
+        this.TryAssignBuilder(colonist, waterRecycler);
+        int cost = waterRecycler.TryBeginConstruction(_energy);
         if (cost != 0)
         {
             _energy -= cost;
-            _buildings.Add(habitat);
+            _energyConsumedToday -= cost;
+            _buildings.Add(waterRecycler);
             _nextBuildingId++;
             return true;
         }
@@ -95,13 +104,14 @@ public class Colony
 
     public bool TryAddIndoorFarm(Colonist colonist)
     {
-        Farm habitat = new Farm(_nextBuildingId);
-        habitat.AddBuilder(colonist);
-        int cost = habitat.TryBeginConstruction(_energy);
+        Farm farm = new Farm(_nextBuildingId);
+        this.TryAssignBuilder(colonist, farm);
+        int cost = farm.TryBeginConstruction(_energy);
         if (cost != 0)
         {
             _energy -= cost;
-            _buildings.Add(habitat);
+            _energyConsumedToday -= cost;
+            _buildings.Add(farm);
             _nextBuildingId++;
             return true;
         }
@@ -218,15 +228,18 @@ public class Colony
 
     public int GetHousingCapacity()
     {
-        int housingCopacity = 0;
+        int housingCapacity = 0;
         foreach (Building building in _buildings)
         {
-            if (building is Habitat habitat)
+            if (
+                building is Habitat habitat
+                && habitat.GetState() == ConstructionState.Complete
+            )
             {
-                housingCopacity += habitat.GetCapacity();
+                housingCapacity += habitat.GetCapacity();
             }
         }
-        return housingCopacity;
+        return housingCapacity;
     }
 
     public IReadOnlyList<Building> GetBuildings()
@@ -268,6 +281,7 @@ public class Colony
     {
         if (building.IsAvailable())
         {
+            this.UnassignColonist(builder);
             building.AddBuilder(builder);
             return true;
         }
@@ -320,6 +334,7 @@ public class Colony
             if (cost != 0)
             {
                 _energy -= cost;
+                _energyConsumedToday -= cost;
                 return true;
             }
         }
@@ -329,6 +344,9 @@ public class Colony
     public bool AdvanceDay()
     {
         // calculate and production
+        _foodProducedToday = 0;
+        _waterProducedToday = 0;
+        _energyProducedToday = 0;
         _daysSurvived += 1;
         foreach (Building building in _buildings)
         {
@@ -340,91 +358,91 @@ public class Colony
             {
                 if (building is ProductionBuilding productionBuilding)
                 {
+                    //if its a powerplant it can run in power outage
+                    if (productionBuilding is PowerPlant)
+                    {
+                        _energy += productionBuilding.Produce();
+                        _energyProducedToday += productionBuilding.Produce();
+                    }
                     //make sure there is enough energy to run the building
-                    if (!_poweroutage)
+                    if (!_powerOutage)
                     {
                         switch (productionBuilding.GetResourceType())
                         {
                             case ResourceType.Food:
                                 _food += productionBuilding.Produce();
+                                _foodProducedToday +=
+                                    productionBuilding.Produce();
                                 break;
                             case ResourceType.Water:
                                 _water += productionBuilding.Produce();
-                                break;
-                            case ResourceType.Energy:
-                                _energy += productionBuilding.Produce();
+                                _waterProducedToday +=
+                                    productionBuilding.Produce();
                                 break;
                         }
                     }
                 }
+                //handle energy upkeep
+                _energy -= building.GetEnergyUpkeep();
+                _energyConsumedToday -= building.GetEnergyUpkeep();
             }
-            //handle energy upkeep
-            _energy -= building.GetEnergyUpkeep();
             //check for power outage
             if (_energy < 0)
             {
-                _poweroutage = true;
+                _powerOutage = true;
             }
             else
             {
-                _poweroutage = false;
+                _powerOutage = false;
             }
         }
         //calculate and handle costs
+        _energy -= 3; //energy cost for heating
+        _energyConsumedToday -= 3;
         _numColonistsFed = 0;
+        _waterConsumedToday = 0;
+        _foodConsumedToday = 0;
         foreach (Colonist colonist in _colonists)
         {
             if (_food != 0 && _water != 0)
             {
                 _food--;
                 _water--;
+                _foodConsumedToday++;
+                _waterConsumedToday++;
                 _numColonistsFed += 1;
             }
         }
-        if (_food < 0)
+        if (_food <= 0)
         {
             if (_recovering)
             {
                 return false;
             }
-            _daysSurvived += 1;
             _recovering = true;
             _food = 0;
             return true;
         }
-        if (_water < 0)
+        if (_water <= 0)
         {
             if (_recovering)
             {
                 return false;
             }
-            _daysSurvived += 1;
             _recovering = true;
             _water = 0;
             return true;
         }
-        _energy -= 3; //energy cost for heating
         //check for power outage
-        if (_energy < 0)
+        if (_energy <= 0)
         {
-            _poweroutage = true;
+            _powerOutage = true;
         }
         else
         {
-            _poweroutage = false;
+            _powerOutage = false;
         }
         return true;
-    }
-
-    public void logColonyStatus()
-    {
-        Console.WriteLine($"Days Survived: {_daysSurvived}");
-        Console.WriteLine($"Food: {_food}");
-        Console.WriteLine($"Water: {_water}");
-        Console.WriteLine($"Energy: {_energy}");
-        Console.WriteLine($"Morale: {_morale}");
-        Console.WriteLine($"Recovering: {_recovering}");
-        Console.WriteLine($"Power Outage: {_poweroutage}");
     }
 
     public string GetBuildingsDisplay()
@@ -457,7 +475,7 @@ public class Colony
         return fullString;
     }
 
-    public string GetResourceForcastDisplay()
+    public string GetResourceForecastDisplay()
     {
         return $@"
 RESOURCE FORECAST
@@ -470,13 +488,16 @@ Energy         {_energy}          +{this.GetProjectedEnergyProduction()}        
 
     public string GetResourceReportDisplay()
     {
-        return $@"
+        string s =
+            $@"
 RESOURCE REPORT
-Resource    started    Production    Consumption    Remaining
-Food           {_food}          +{this.GetProjectedFoodProduction()}             -{this.GetProjectedFoodConsumption()}            {this.GetFood() + this.GetProjectedFoodProduction() - this.GetProjectedFoodConsumption()}
-Water          {_water}          +{this.GetProjectedWaterProduction()}             -{this.GetProjectedWaterConsumption()}            {this.GetWater() + this.GetProjectedWaterProduction() - this.GetProjectedWaterConsumption()}
-Energy         {_energy}          +{this.GetProjectedEnergyProduction()}             -{this.GetProjectedEnergyConsumption()}            {this.GetEnergy() + this.GetProjectedEnergyProduction() - this.GetProjectedEnergyConsumption()}
+Resource    Amount    Produced    Consumed    
+Food           {_food}          +{_foodProducedToday}             -{_foodConsumedToday}       
+Water          {_water}          +{_waterProducedToday}             -{_waterConsumedToday}    
+Energy         {_energy}          +{_energyProducedToday}             {_energyConsumedToday}  
         ";
+        _energyConsumedToday = 0;
+        return s;
     }
 
     public string GetConstructionDisplay()
@@ -505,7 +526,7 @@ Energy         {_energy}          +{this.GetProjectedEnergyProduction()}        
         foreach (Building building in _buildings)
         {
             if (
-                building.GetState() == ConstructionState.planned
+                building.GetState() == ConstructionState.Planned
                 || building.GetState() == ConstructionState.UnderConstruction
             )
             {
@@ -513,7 +534,7 @@ Energy         {_energy}          +{this.GetProjectedEnergyProduction()}        
                 {
                     assignmentsAvailable = true;
                     fullString +=
-                        $"{building.GetId()} {building.GetName()}  Builders {building.GetBuilders().Count()}/{building.GetRequiredBuildersCount()} Days Remaining: {building.GetConstructionDaysRemaining} Requires: {building.GetRequiredSpecialty()}";
+                        $"{building.GetId()} {building.GetName()}  Builders {building.GetBuilders().Count()}/{building.GetRequiredBuildersCount()} Days Remaining: {building.GetConstructionDaysRemaining()} Requires: {building.GetRequiredSpecialty()}";
                 }
             }
         }
@@ -544,7 +565,7 @@ Energy         {_energy}          +{this.GetProjectedEnergyProduction()}        
         string fullString =
             $@"
         {_numColonistsFed}/{_colonists.Count()} Received food and water";
-        if (!_poweroutage)
+        if (!_powerOutage)
         {
             fullString +=
                 "\n Heating and production systems remained operational.";

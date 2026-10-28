@@ -5,15 +5,13 @@ public class Game
 {
     private Colony _colony;
     private int _targetDays;
-    private int _daysUntilArrival;
     private List<Building> _buildingTypes;
-    private int _survivorsTurnedAway;
+    private bool _gameOver;
 
     public Game()
     {
         _colony = new Colony();
         _targetDays = 30;
-        _daysUntilArrival = 5;
         _buildingTypes =
         [
             new Farm(),
@@ -21,7 +19,6 @@ public class Game
             new PowerPlant(),
             new Habitat(),
         ];
-        _survivorsTurnedAway = 0;
     }
 
     public void Run()
@@ -50,16 +47,15 @@ The generators hummed. The grow lights stayed on.
 Six colonists now depend on this outpost.
 Their skills—and your decisions—will determine whether it becomes a lasting refuge.
 
-Survive the first 25 days and grow your community to at least 10 colonists.
+Survive the first 30 days
 
 Press Enter to begin."
         );
         Console.ReadLine();
-        //first day
-        this.BeginDay();
         //continue until the target number of days is reached
-        while (_colony.GetDaysSurvived() < _targetDays)
+        while (_colony.GetDaysSurvived() < _targetDays && !_gameOver)
         {
+            this.BeginDay();
             int choice = this.HandleInput(0, 3);
             switch (choice)
             {
@@ -75,8 +71,10 @@ Press Enter to begin."
                 case 0:
                     return;
             }
-
-            this.BeginDay();
+        }
+        if (!_gameOver)
+        {
+            Console.WriteLine("You Win!");
         }
     }
 
@@ -96,14 +94,13 @@ Press Enter to begin."
 Select a colonist number, or 0 to return: "
         );
         int choice = this.HandleInput(0, _colony.GetColonistCount());
+        if (choice == 0)
         {
-            if (choice == 0)
-            {
-                return;
-            }
-            Colonist colonist = _colony.GetColonists()[choice - 1];
-            Console.WriteLine(
-                $@"==============================================================
+            return;
+        }
+        Colonist colonist = _colony.GetColonists()[choice - 1];
+        Console.WriteLine(
+            $@"==============================================================
                          {colonist.GetName()}
 ==============================================================
 
@@ -119,41 +116,45 @@ CHOOSE AN ASSIGNMENT
 [0] Back
 
 Choose: "
+        );
+        Building building;
+        while (true)
+        {
+            string userInput = Console.ReadLine();
+            if (userInput == "0")
+            {
+                return;
+            }
+            building = _colony.TryAssign(userInput);
+            if (building != null)
+            {
+                break;
+            }
+            Console.WriteLine("Please give a valid input");
+        }
+        bool workerAssigned;
+        if (building is ProductionBuilding productionBuilding)
+        {
+            workerAssigned = _colony.TryAssignWorker(
+                colonist,
+                productionBuilding
             );
-            Building building;
-            while (true)
-            {
-                building = _colony.TryAssign(Console.ReadLine());
-                if (building != null)
-                {
-                    break;
-                }
-                Console.WriteLine("Please give a valid input");
-            }
-            bool workerAssigned;
-            if (building is ProductionBuilding productionBuilding)
-            {
-                workerAssigned = _colony.TryAssignWorker(
-                    colonist,
-                    productionBuilding
-                );
-            }
-            else
-            {
-                workerAssigned = _colony.TryAssignBuilder(colonist, building);
-            }
-            if (workerAssigned)
-            {
-                Console.WriteLine(
-                    $"{colonist.GetName()} successfully assigned to {building.GetName()}"
-                );
-            }
-            else
-            {
-                Console.WriteLine(
-                    $"{colonist.GetName()} could not be assigned to {building.GetName()}"
-                );
-            }
+        }
+        else
+        {
+            workerAssigned = _colony.TryAssignBuilder(colonist, building);
+        }
+        if (workerAssigned)
+        {
+            Console.WriteLine(
+                $"{colonist.GetName()} successfully assigned to {building.GetName()}"
+            );
+        }
+        else
+        {
+            Console.WriteLine(
+                $"{colonist.GetName()} could not be assigned to {building.GetName()}"
+            );
         }
     }
 
@@ -169,7 +170,6 @@ Housing: {_colony.GetColonistCount()}/{_colony.GetHousingCapacity()} occupied
 
 {this.GetConstructionDisplay()}
 
-[5] View construction projects
 [0] Back
 
 Choose:"
@@ -193,6 +193,10 @@ Required Specialty: {building.GetRequiredSpecialty()}
 Choose a colonist you want to work on this project"
         );
         int colonistChoice = this.HandleInput(0, _colony.GetColonistCount());
+        if (colonistChoice == 0)
+        {
+            return;
+        }
         Colonist colonist = _colony.GetColonists()[colonistChoice - 1];
         if (building is Habitat habitat)
         {
@@ -211,7 +215,7 @@ Housing after completion:     {_colony.GetHousingCapacity()} -> {_colony.GetHous
 Energy after payment:        {_colony.GetEnergy()} -> {_colony.GetEnergy() - habitat.GetConstructionCost()}
 
 CREW
-{colonist.GetName} {colonist.GetSpecialty} {_colony.GetColonistAssignment(colonist)}
+{colonist.GetName()} {colonist.GetSpecialty()} {_colony.GetColonistAssignment(colonist)}
 
 [1] Start construction
 [0] Back without starting
@@ -267,12 +271,6 @@ Choose:"
 
     private void EndDay()
     {
-        _daysUntilArrival -= 1;
-        if (_daysUntilArrival == 0)
-        {
-            Console.WriteLine("colonist arrives!");
-            _daysUntilArrival = 5;
-        }
         if (_colony.AdvanceDay())
         {
             Console.WriteLine(
@@ -292,11 +290,8 @@ COLONY
 
 Population: {_colony.GetColonistCount()}
 Housing: {_colony.GetColonistCount()}/{_colony.GetHousingCapacity()} occupied
-Survivors turned away: {_survivorsTurnedAway}
 
-Next survivor arrives in {_daysUntilArrival} days
-
-Days remaining until the end of the month: {_targetDays}
+Days remaining until the end of the month: {_targetDays - _colony.GetDaysSurvived()}
 
 Press Enter to plan day {_colony.GetDaysSurvived() + 1}.
 ================================================================ "
@@ -306,6 +301,8 @@ Press Enter to plan day {_colony.GetDaysSurvived() + 1}.
         else
         {
             Console.WriteLine("Game Over");
+            _gameOver = true;
+            return;
         }
     }
 
@@ -318,7 +315,7 @@ Press Enter to plan day {_colony.GetDaysSurvived() + 1}.
         {
             i++;
             string line =
-                $"{i} {building.GetName()}    {building.GetEnergyUpkeep()}     {building.GetConstructionDaysRemaining()}     {building.GetRequiredSpecialty()}";
+                $"{i} {building.GetName()}    {building.GetConstructionCost()}     {building.GetConstructionDaysRemaining()}     {building.GetRequiredSpecialty()}";
             fullString += line + "\n";
         }
         return fullString;
@@ -333,11 +330,10 @@ Press Enter to plan day {_colony.GetDaysSurvived() + 1}.
 ==============================================================
 
 Colonists: {_colony.GetColonistCount()}        Housing: {_colony.GetColonistCount()}/{_colony.GetHousingCapacity()}
-Goal: Finish day 25 with at least 10 colonists.
+Goal: Finish day 30
 
-{_colony.GetResourceForcastDisplay()}
+{_colony.GetResourceForecastDisplay()}
 
-Energy use: 3 heating + {_colony.GetProjectedEnergyConsumption()} building upkeep.
 Forecast excludes random events.
 
 {_colony.GetBuildingsDisplay()}
@@ -345,8 +341,6 @@ Forecast excludes random events.
 {_colony.GetColonistsDisplay()}
 
 {_colony.GetConstructionDisplay()}
-
-Next Colonist Arrives in {_daysUntilArrival} day(s)
 
 --------------------------------------------------------------
 [1] Manage assignments

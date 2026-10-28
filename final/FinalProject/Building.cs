@@ -39,7 +39,7 @@ public abstract class Building
         }
         else
         {
-            _state = ConstructionState.planned;
+            _state = ConstructionState.Planned;
         }
         _builders = new List<Colonist>();
     }
@@ -88,6 +88,7 @@ public abstract class Building
             if (_constructionDaysRemaining <= 0)
             {
                 _state = ConstructionState.Complete;
+                _builders = [];
             }
         }
     }
@@ -99,7 +100,7 @@ public abstract class Building
 
     public bool BuilderNeeded()
     {
-        if (_builders.Count() > _requiredBuilderCount)
+        if (_builders.Count() < _requiredBuilderCount)
         {
             return true;
         }
